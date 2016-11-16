@@ -1,0 +1,12 @@
+<component name="libraryTable">
+  <library name="slider-1.3.0">
+    <CLASSES>
+      <root url="file://$PROJECT_DIR$/app/build/intermediates/exploded-aar/me.angrybyte.slider/slider/1.3.0/res" />
+      <root url="jar://$PROJECT_DIR$/app/build/intermediates/exploded-aar/me.angrybyte.slider/slider/1.3.0/jars/classes.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES>
+      <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/me.angrybyte.slider/slider/1.3.0/bc37456c2c36be185d7caff58da6d88be7b4bae2/slider-1.3.0-sources.jar!/" />
+    </SOURCES>
+  </library>
+</component>
