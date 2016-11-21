@@ -28,6 +28,7 @@ public class MusicService extends IntentService {
     MP3Player player = null;
     private final IBinder binder = new MusicBinder();
     String currentMusicPath = null;
+    NotificationManager nm;
 
     public class MusicBinder extends Binder {
         public MusicBinder() {
@@ -113,7 +114,7 @@ public class MusicService extends IntentService {
         PendingIntent pendingIntent= PendingIntent.getActivity(getApplicationContext(), 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
         builder.setContentIntent(pendingIntent);
 
-        NotificationManager nm = (NotificationManager)  getSystemService(Context.NOTIFICATION_SERVICE);
+        nm = (NotificationManager)  getSystemService(Context.NOTIFICATION_SERVICE);
         nm.notify(NOTIF_MUSIC, builder.build());
 
 
@@ -121,8 +122,7 @@ public class MusicService extends IntentService {
 
     @Override
     public void onDestroy() {
-        NotificationManager notificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
-        notificationManager.cancel(0);
+        nm.cancelAll();
         super.onDestroy();
     }
 }
