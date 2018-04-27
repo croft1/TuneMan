@@ -33,4 +33,7 @@ dependencies {
     compile    'me.angrybyte.slider:slider:1.3.0'
     compile    'com.android.support:design:25.0.0'
     testCompile'junit:junit:4.12'
+
+    //audiogram
+    compile 'com.github.alxrm:Audiogram:0.5'
 }

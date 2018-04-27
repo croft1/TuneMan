@@ -68,10 +68,20 @@ public class MP3Player {
         return 0;
     }
 
+    public void setProgress() {
+        if (mediaPlayer != null) {
+            if (this.state == MP3PlayerState.PAUSED || this.state == MP3PlayerState.PLAYING) {
+                //todo change the time of the audio
+            }
+        }
+
+    }
+
     public void play() {
         if(this.state == MP3PlayerState.PAUSED) {
             mediaPlayer.start();
             this.state = MP3PlayerState.PLAYING;
+            mediaPlayer.setLooping(true);
         }
     }
 

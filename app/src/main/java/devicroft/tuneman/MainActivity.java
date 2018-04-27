@@ -12,6 +12,7 @@ import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Handler;
 import android.os.IBinder;
+import android.support.annotation.Dimension;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.content.ContextCompat;
 import android.util.TimeUtils;
@@ -30,7 +31,8 @@ import android.widget.Toast;
 
 import java.util.concurrent.TimeUnit;
 
-import me.angrybyte.circularslider.CircularSlider;
+import rm.com.audiowave.AudioWaveView;
+
 
 public class MainActivity extends AppCompatActivity {
 
@@ -41,8 +43,9 @@ public class MainActivity extends AppCompatActivity {
     ImageView prevButton;
     TextView time;
     TextView title;
-    CircularSlider circularSlider;
     MP3Player player;
+
+    AudioWaveView waveView;
 
     Handler handler;
     Thread timeThread;
@@ -72,17 +75,16 @@ public class MainActivity extends AppCompatActivity {
 
     private View.OnClickListener ppListener = new View.OnClickListener() {
         public void onClick(View v) {
-            if(player.isLoaded()) { updatePlayStatus(); }
+            //not loaded, go to choose song or if it is change UI and play song
+            if(player.isLoaded()) {
+                updatePlayStatus();
+            }else{
+                initiateLoadSongActivity();
+            }
         }
     };
 
-    private CircularSlider.OnSliderMovedListener sliderListener = new CircularSlider.OnSliderMovedListener(){
-        @Override
-        public void onSliderMoved(double pos) {
-            //todo change time player is at
-            //https://android-arsenal.com/details/1/3417#!description
-        }
-    };
+
 
     //https://stackoverflow.com/questions/21447798/how-to-display-current-time-of-song-in-textview
     //https://developer.android.com/guide/topics/media/mediaplayer.html
@@ -91,13 +93,20 @@ public class MainActivity extends AppCompatActivity {
         @Override
         public void run() {
 
-            // Displaying Total Duration time
+            // Displaying Total Duration time running together
             runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
                     time.setVisibility(View.VISIBLE);
                     time.setText("" + TimeUnit.MILLISECONDS.toMinutes(player.getProgress()) +
                             ":" + TimeUnit.MILLISECONDS.toSeconds(player.getProgress()));
+
+                    /*
+                    getting byte data too annoying
+                    Double progressPercent = new Double(player.getProgress() / player.mediaPlayer.getDuration());
+                    waveView.setRawData(player.mediaPlayer.get);
+                    waveView.setProgress(progressPercent.intValue());
+                    */
 
                     //circularSlider.setAngle(player.mediaPlayer.getCurrentPosition());
                     //circularSlider.setPosition(player.mediaPlayer.getCurrentPosition());
@@ -168,20 +177,23 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        circularSlider = (CircularSlider) findViewById(R.id.circular_slider);
+        //setup references to ui eleements
         ppButton = (ImageView) findViewById(R.id.play_pause);
         nextButton = (ImageView) findViewById(R.id.next);
         prevButton = (ImageView) findViewById(R.id.previous);
         time = (TextView) findViewById(R.id.timeText);
         title = (TextView) findViewById(R.id.title);
         ppButton = (ImageView) findViewById(R.id.play_pause);
-
+        //waveView = (AudioWaveView) findViewById(R.id.wave);
         player = new MP3Player();
+
+        //setup waveview
+        waveView.setWaveColor(R.color.colorAccent);
 
 
         ppButton.setOnClickListener(ppListener);
-        circularSlider.setOnSliderMovedListener(sliderListener);
 
+        //handler created to be used for updating the song time
         handler = new Handler();
 
         init(); //temporary
@@ -207,31 +219,7 @@ public class MainActivity extends AppCompatActivity {
         switch(item.getItemId()){
             case R.id.load_song:
 
-                //https://developer.android.com/training/permissions/requesting.html
-                if (ContextCompat.checkSelfPermission(MainActivity.this,
-                        Manifest.permission.READ_EXTERNAL_STORAGE)
-                        != PackageManager.PERMISSION_GRANTED) {
-
-                    // Should we show an explanation?
-                    if (ActivityCompat.shouldShowRequestPermissionRationale(MainActivity.this,
-                            Manifest.permission.READ_EXTERNAL_STORAGE)) {
-
-                    } else {
-                        //request permission
-                        ActivityCompat.requestPermissions(MainActivity.this,
-                                new String[]{Manifest.permission.READ_EXTERNAL_STORAGE},
-                                REQUEST_READ_STORAGE_PERMISSION);
-                    }
-                }
-
-                if(checkReadExternalPermission()){
-                    //send off to activity which displays all tracks if we are allowed to acces storage
-                    Intent i = new Intent(this, MusicPicker.class);
-                    startActivityForResult(i, REQUEST_SELECT_MUSIC);
-                    overridePendingTransition(0, 0);
-                }else{
-
-                }
+                initiateLoadSongActivity();
 
 
                 break;
@@ -247,6 +235,34 @@ public class MainActivity extends AppCompatActivity {
         String permission = "android.permission.READ_EXTERNAL_STORAGE";
         int p = this.checkCallingOrSelfPermission(permission);
         return (p == PackageManager.PERMISSION_GRANTED);
+    }
+
+    private void initiateLoadSongActivity(){
+        //https://developer.android.com/training/permissions/requesting.html
+        if (ContextCompat.checkSelfPermission(MainActivity.this,
+                Manifest.permission.READ_EXTERNAL_STORAGE)
+                != PackageManager.PERMISSION_GRANTED) {
+
+            // Should we show an explanation?
+            if (ActivityCompat.shouldShowRequestPermissionRationale(MainActivity.this,
+                    Manifest.permission.READ_EXTERNAL_STORAGE)) {
+
+            } else {
+                //request permission
+                ActivityCompat.requestPermissions(MainActivity.this,
+                        new String[]{Manifest.permission.READ_EXTERNAL_STORAGE},
+                        REQUEST_READ_STORAGE_PERMISSION);
+            }
+        }
+
+        if(checkReadExternalPermission()){
+            //send off to activity which displays all tracks if we are allowed to acces storage
+            Intent i = new Intent(this, MusicPicker.class);
+            startActivityForResult(i, REQUEST_SELECT_MUSIC);
+            overridePendingTransition(0, 0);
+        }else{
+
+        }
     }
 
     @Override
@@ -282,6 +298,8 @@ public class MainActivity extends AppCompatActivity {
                 updatePlayStatus();
                 player.load("file:///" + songPath);
 
+
+                //
                 Intent i = new Intent(this, MusicService.class);
                 i.putExtra(EXTRA_SONG_INDEX_PATH, songPath);
 
@@ -299,7 +317,6 @@ public class MainActivity extends AppCompatActivity {
         prevButton.setVisibility(View.GONE);
         time.setVisibility(View.GONE);
 
-        circularSlider.setVisibility(View.GONE);
         //circularSlider.setStartAngle(0);
 
     }
@@ -318,9 +335,10 @@ public class MainActivity extends AppCompatActivity {
         super.onDestroy();
         Log.d("TuneMan", "Main Destroyed");
 
-        //when we kill the process, the service does with it.
+        //when we kill the process, the service goes with it.
         if(serviceConnection!=null){
             Log.d("Service", "Service disconnected");
+
             unbindService(serviceConnection);
             serviceConnection = null;
         }
